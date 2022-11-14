@@ -25,7 +25,6 @@ from pprint import pprint as pp
 log = core.getLogger()
 
 MAX_PHYS_PORTS = 0xFF00
-
 # dict of TCP and UDP proto numbers
 PROTO_NUMS = {
   6 : 'tcp',
@@ -42,6 +41,7 @@ class CloudNetController (EventMixin):
     def __init__(self, firewall_capability, migration_capability, firewall_policy_file, migration_events_file):
         super(EventMixin, self).__init__()
 
+        self.cnt = 1
         #generic controller information
         self.switches = {}     # key=dpid, value = SwitchWithPaths instance
         self.sw_sw_ports = {}  # key = (dpid1,dpid2), value = outport of dpid1
@@ -153,7 +153,7 @@ class CloudNetController (EventMixin):
         packet = event.parsed
         dpid = event.dpid
         inport = event.port
-
+        print("firewall poli = " , self.firewall_policies)
         def handle_ARP_pktin():
             srcip = IPAddr(packet.next.protosrc)
             dstip = IPAddr(packet.next.protodst)
@@ -168,7 +168,9 @@ class CloudNetController (EventMixin):
                 if self.firewall_capability:
                     try:
                         #WRITE YOUR CODE HERE!
-                        pass
+                        if (self.firewall_policies[srcip] != self.firewall_policies[dstip]):
+                            self.drop_packets(self.arpmap[srcip][1], packet)
+                            return
                     except KeyError:
                         log.info("IPs not covered by policy!")
                         return
@@ -197,7 +199,9 @@ class CloudNetController (EventMixin):
                 if self.firewall_capability:
                     try:
                         #WRITE YOUR CODE HERE!
-                        pass
+                        if (self.firewall_policies[srcip] != self.firewall_policies[dstip]):
+                            self.drop_packets(self.arpmap[srcip][1], packet)
+                            return
                     except KeyError:
                         return
 
@@ -218,6 +222,8 @@ class CloudNetController (EventMixin):
                 return
 
         def handle_IP_pktin():
+            print("COUNTER ============ " , self.cnt)
+            self.cnt += 1
             srcip = IPAddr(packet.next.srcip)
             dstip = IPAddr(packet.next.dstip)
             if (srcip in self.ignored_IPs) or (dstip in self.ignored_IPs):
@@ -229,11 +235,13 @@ class CloudNetController (EventMixin):
             if self.firewall_capability:
                 try:
                     #WRITE YOUR CODE HERE!
-                    pass
+                    if (self.firewall_policies[srcip] != self.firewall_policies[dstip]):
+                        self.drop_packets(self.arpmap[srcip][1], packet)
+                        return
                 except KeyError:
                     log.info("IPs not covered by policy!")
                     return
-
+            print("migration = " , self.migration_events)
             if self._paths_computed:
                 #print "Routing calculations have converged"
                 log.info("Path requested for flow %s-->%s" % (str(srcip), str(dstip)))
@@ -288,39 +296,101 @@ class CloudNetController (EventMixin):
 
     def install_end_to_end_IP_path(self, event, dst_dpid, final_port, packet):
         #WRITE YOUR CODE HERE!
-        # print("event = " , event.data)
-        print("dst_dpid = " , dst_dpid)
         print("final port = " , final_port)
         packet_proto = packet.payload.protocol
+        print("IP src = " , packet.payload.srcip)
+        print("MAC src = " , packet.src)
+        print("IP dst = " , packet.payload.dstip)
+        print("MAC dst = " , packet.dst)
+        print("INPORT = " , event.port)
+        # print("sw-sw ports = " , self.sw_sw_ports)
         if packet_proto == 6:   # TCP PROTOCOL
             print("TCP PACKET")
         else:                   #UDP/OTHER PROTOCOL
             print("UDP/OTHER PACKET")
-            src_id = self.arpmap[packet.payload.srcip][1]
-            print("srcid = " ,  src_id)
-            print("dstid = " , dst_dpid)
-            if src_id == dst_dpid:
-                print("den iparxi")
-                path = [dst_dpid]
-            else:
-                path = self.switches[src_id].getPathsperProto(dst=dst_dpid)
-                # path = self.switches[dst_dpid]._paths_per_proto[dest_swicth]
-            # print("dest_swicth = " , dest_swicth)
-            print("PATH FINAL = " , path)
-            # myMatch = of.ofp_macth() 
-            # 
-            # 
-            # 
-            # 
-            for sw in reversed(path):
-                self.switches[dst_dpid].install_output_flow_rule()
-
-
+        src_id = self.arpmap[packet.payload.srcip][1]
+        print("srcid = " ,  src_id)
+        print("dstid = " , dst_dpid)
+        if src_id == dst_dpid:
+            print("src_id = dst_dpid")
+            # print("ports of switch = " , self.switches[dst_dpid].ports)
+            # path = [dst_dpid]
+            myMatch = of.ofp_match()
+            myMatch.nw_src = packet.payload.srcip
+            myMatch.nw_dst = packet.payload.dstip
+            myMatch.dl_type = 0x800
+            myMatch.in_port = event.port
+            # myMatch.dl_src = packet.src
+            # myMatch.dl_dst = packet.dst
+            self.switches[dst_dpid].install_output_flow_rule(outport=final_port , match=myMatch , idle_timeout=10)
+            self.switches[src_id].send_packet(final_port , packet.pack())
+        else:
+            path = self.switches[src_id].getPathsperProto(dst=dst_dpid)
+            print("path = " , path)
+            rev_path = path[0][::-1]
+            print("reverse path = " , rev_path)
+            myMatch = of.ofp_match()
+            myMatch.nw_src = packet.payload.srcip
+            myMatch.nw_dst = packet.payload.dstip
+            myMatch.dl_type = 0x800
+            myMatch.in_port = event.port
+            for i in range(len(rev_path)):
+                if(i == 0):
+                    outport = final_port
+                else:
+                    j = i - 1
+                    sw_sw = (rev_path[i],rev_path[j])
+                    outport = self.sw_sw_ports[sw_sw]
+                    print("outport = " , outport)
+                self.switches[rev_path[i]].install_output_flow_rule(outport=outport , match=myMatch , idle_timeout=10)
+            self.switches[src_id].send_packet(outport , packet.pack())
         
     def install_migrated_end_to_end_IP_path(self, event, dst_dpid, dst_port, packet, forward_path=True):
         #WRITE YOUR CODE HERE!
-        pass
-
+        if src_id == dst_dpid:
+            print("src_id = dst_dpid")
+            # print("ports of switch = " , self.switches[dst_dpid].ports)
+            # path = [dst_dpid]
+            myMatch = of.ofp_match()
+            myMatch.nw_src = packet.payload.srcip
+            myMatch.nw_dst = packet.payload.dstip
+            myMatch.dl_type = 0x800
+            myMatch.in_port = event.port
+            # myMatch.dl_src = packet.src
+            # myMatch.dl_dst = packet.dst
+            final_port = dst_port
+            if(forward_path == True):
+                self.switches[dst_dpid].install_forward_migration_rule(outport=final_port , match=myMatch , idle_timeout=10)
+                self.switches[src_id].send_forward_migrated_packet(final_port , packet.pack())
+            else:
+                self.switches[dst_dpid].install_reverse_migration_rule(outport=final_port , match=myMatch , idle_timeout=10)
+                self.switches[src_id].send_reverse_migrated_packet(final_port , packet.pack())
+        else:
+            path = self.switches[src_id].getPathsperProto(dst=dst_dpid)
+            print("path = " , path)
+            rev_path = path[0][::-1]
+            print("reverse path = " , rev_path)
+            myMatch = of.ofp_match()
+            myMatch.nw_src = packet.payload.srcip
+            myMatch.nw_dst = packet.payload.dstip
+            myMatch.dl_type = 0x800
+            myMatch.in_port = event.port
+            for i in range(len(rev_path)):
+                if(i == 0):
+                    outport = final_port
+                else:
+                    j = i - 1
+                    sw_sw = (rev_path[i],rev_path[j])
+                    outport = self.sw_sw_ports[sw_sw]
+                    print("outport = " , outport)
+                if(forward_path == True):
+                    self.switches[rev_path[i]].install_forward_migration_rule(outport=outport , match=myMatch , idle_timeout=10)
+                else:
+                    self.switches[rev_path[i]].install_revers_migration_rule(outport=outport , match=myMatch , idle_timeout=10)
+            if(forward_path == True):      
+                self.switches[src_id].send_forward_migrated_packet(outport , packet.pack())
+            else:
+                self.switches[src_id].send_reverse_migrated_packet(outport , packet.pack())
 
     def handle_migration(self, old_IP, new_IP):
         log.info("Handling migration from %s to %s..." % (str(old_IP), str(new_IP)))
@@ -442,7 +512,7 @@ class SwitchWithPaths (EventMixin):
         # print("list of proto nums = " , list_of_proto_nums)
         for proto_num in list_of_proto_nums:
             self._paths_per_proto[dst][proto_num] = []  
-        print("self paths = " , self._paths)    
+        # print("self paths = " , self._paths)    
         for i,path in enumerate(self._paths[dst]):
             # print("i = ", i)
             # print("path = " , path)
@@ -494,11 +564,11 @@ class SwitchWithPaths (EventMixin):
         # print("all ports[0] = " , self.ports[0].port_no)
         # print("typeof ports[0] = " , type(self.ports[0]))
         # print("ports not to send = " , no_flood_ports)
-        print("flood")
+        # print("flood")
         for port in self.ports:
             # print("port = " , port)
             if port.port_no not in no_flood_ports and port.port_no != 65534:
-                print("YESSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+                # print("YESSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
                 self.send_packet(outport=port.port_no , packet_data=packet.pack())
 
 
