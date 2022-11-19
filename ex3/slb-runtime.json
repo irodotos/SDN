@@ -1,0 +1,439 @@
+{
+  "target": "bmv2",
+  "p4info": "build/simple_load_balancer.p4.p4info.txt",
+  "bmv2_json": "build/simple_load_balancer.json",
+  "table_entries": [
+    {
+      "table": "SLBIngress.ipv4_clients",
+      "default_action": true,
+      "action_name": "SLBIngress.unset_client_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.ipv4_clients",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.1",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_client_metadata",
+      "action_params": {
+          "firstAllowedReplica": 167772421,
+          "lastAllowedReplica": 167772422
+      }
+    },
+    {
+      "table": "SLBIngress.ipv4_clients",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.2",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_client_metadata",
+      "action_params": {
+          "firstAllowedReplica": 167772421,
+          "lastAllowedReplica": 167772422
+      }
+    },
+    {
+      "table": "SLBIngress.ipv4_clients",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.3",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_client_metadata",
+      "action_params": {
+          "firstAllowedReplica": 167772423,
+          "lastAllowedReplica": 167772424
+      }
+    },
+    {
+      "table": "SLBIngress.ipv4_clients",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.4",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_client_metadata",
+      "action_params": {
+          "firstAllowedReplica": 167772423,
+          "lastAllowedReplica": 167772424
+      }
+    },
+    {
+      "table": "SLBIngress.ipv4_servers",
+      "default_action": true,
+      "action_name": "SLBIngress.unset_server_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.ipv4_servers",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.5",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_server_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.ipv4_servers",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.6",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_server_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.ipv4_servers",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.7",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_server_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.ipv4_servers",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.8",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_server_metadata",
+      "action_params": {}
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.1",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:01",
+        "port": 1
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.2",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:02",
+        "port": 2
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.3",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:03",
+        "port": 3
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.4",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:04",
+        "port": 4
+      }
+    }, 
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.5",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:05",
+        "port": 5
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.6",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:06",
+        "port": 6
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.7",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:07",
+        "port": 7
+      }
+    },
+    {
+      "table": "SLBIngress.arpmap",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.8",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_egress_metadata",
+      "action_params": {
+        "dstMAC": "00:00:00:00:01:08",
+        "port": 8
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.1",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.2",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.3",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.4",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.5",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+        "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.6",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.7",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.src_group_membership",
+      "match": {
+        "hdr.ipv4.srcAddr": [
+          "10.0.1.8",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_src_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.1",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.2",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.3",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.4",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.5",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+        "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.6",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 1
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.7",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 2
+      }
+    },
+    {
+      "table": "SLBIngress.dst_group_membership",
+      "match": {
+        "hdr.ipv4.dstAddr": [
+          "10.0.1.8",
+          32
+        ]
+      },
+      "action_name": "SLBIngress.set_dst_membership",
+      "action_params": {
+          "group": 2
+      }
+    }
+  ]
+}
